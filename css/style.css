@@ -40,7 +40,7 @@ img.pix { image-rendering: pixelated; image-rendering: crisp-edges; display: blo
 .grow { flex: 1; min-width: 0; }
 
 /* ── 뼈대 ─────────────────────────── */
-.app { max-width: 460px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; position: relative; padding-top: env(safe-area-inset-top, 0px); }
+.app { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; right: 0; padding-top: env(safe-area-inset-top, 0px); }
 .top { display: flex; align-items: center; gap: 8px; padding: 10px 16px 8px; }
 .name-tag { display: inline-flex; align-items: center; gap: 8px; background: var(--sky); color: #fff; font-weight: 700; padding: 6px 14px 6px 10px; border: 0; border-radius: 4px 14px 14px 4px; min-height: 36px; }
 .name-tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--sky-soft); }
@@ -337,7 +337,7 @@ mark { background: linear-gradient(transparent 45%, #f5e98e 45%); color: inherit
 @media print {
   @page { size: A4; margin: 12mm; }
   html, body { height: auto; overflow: visible; background: #fff; font-size: 11px; }
-  .app { max-width: none; height: auto; display: block; }
+  .app { max-width: none; height: auto; display: block; position: static; }
   .stage, .view { position: static; overflow: visible; height: auto; }
   .top, .tabs, .no-print, .toast, .fx, .sheet, .sheet-backdrop { display: none !important; }
   .page { background: #fff; box-shadow: none; break-inside: avoid; }

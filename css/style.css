@@ -352,3 +352,7 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 input[type="date"]::-webkit-calendar-picker-indicator { margin: 0; }
 .datebar input[type="date"] { flex: 1; width: auto; display: flex; align-items: center; }
 .form input, .form select { max-width: 100%; min-width: 0; }
+
+/* 아이폰 확대 막기: 두 번 탭 확대 끄기, 입력 칸 글씨 16px 이상(작으면 누를 때 확대돼요) */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+input, select, textarea { font-size: max(16px, 1em); }

@@ -1135,6 +1135,7 @@ function viewMonth(root) {
   const wDelta = weights.length >= 2 ? +(weights.at(-1).y - weights[0].y).toFixed(1) : null;
   const t = today();
   const [y, m] = mk.split('-').map(Number);
+  const w0 = weeksOld(p, `${mk}-${pad(days)}`);
   const MINI = { food: sticker('milpro', 1), water: sticker('water', 1), clean: sticker('clean', 1), photo: icon('camera', 2), worry: icon('ban', 2) };
   const ledger = [
     ['기록한 날', `${recorded} / ${days}일`], ['몸무게 변화', wDelta == null ? '-' : `${wDelta > 0 ? '+' : ''}${wDelta} g`],
@@ -1145,8 +1146,9 @@ function viewMonth(root) {
   ];
 
   root.innerHTML = `
-    <div class="print-only" style="margin-bottom:8px"><b>금이로그 · 월간 회고</b> · ${esc(p.name)} · ${y}년 ${m}월</div>
-    <div class="page">
+    <div class="mprint">
+    <div class="print-only m-head"><b>금이로그 · 월간 회고</b><span>${esc(p.name)} · ${y}년 ${m}월${w0 != null ? ` · 생후 ${w0}주` : ''}</span></div>
+    <div class="page m-cal">
       <div class="mhead">
         <button class="key no-print" id="prevM" aria-label="이전 달">${SVG_PREV}</button>
         <span class="tape">${y}년 ${m}월</span>
@@ -1167,30 +1169,31 @@ function viewMonth(root) {
       </div>
     </div>
 
-    <div class="page ledger">
+    <div class="page ledger m-ledger">
       <div class="sec-title"><p class="h-hand">이번 달 장부</p>
         <span class="row no-print"><button type="button" class="btn sm white" id="printBtn">인쇄 · PDF</button><button type="button" class="btn sm white" id="csvBtn">CSV</button></span></div>
       ${ledger.map(([l, v]) => `<div class="rowline"><span class="lb">${l}</span><span class="dots-fill"></span><span class="v">${v}</span></div>`).join('')}
     </div>
 
-    <div class="page"><div class="sec-title"><p class="h-hand">몸무게</p><span class="ex">g</span></div>${lineChart(weights, { color: '#e8707c' })}</div>
-    <div class="page"><div class="sec-title"><p class="h-hand">넣어준 사료</p></div>
+    <div class="page m-chart"><div class="sec-title"><p class="h-hand">몸무게</p><span class="ex">g</span></div>${lineChart(weights, { color: '#e8707c' })}</div>
+    <div class="page m-chart"><div class="sec-title"><p class="h-hand">넣어준 사료</p></div>
       ${barChart([...Array(days)].map((_, i) => { const e = byDate[`${mk}-${pad(i + 1)}`]; return { x: i + 1, a: num(e?.milpro) || 0, b: num(e?.fruchu) || 0, w: (e?.worm || 0) > 0 }; }), days)}
       <div class="legend"><span><i style="width:10px;height:10px;background:#c99a5b;display:inline-block"></i>밀프로</span><span><i style="width:10px;height:10px;background:#f3aeb5;display:inline-block"></i>후르츄</span><span><i style="width:6px;height:6px;background:${O};display:inline-block"></i>웜 준 날</span></div></div>
-    <div class="page"><div class="sec-title"><p class="h-hand">케이지 온도</p>${tr ? `<span class="small muted">하늘색 띠 = 적정 ${tr.min}~${tr.max}°C</span>` : ''}</div>${lineChart(temps, { band: tr ? [tr.min, tr.max] : null })}</div>
+    <div class="page m-chart"><div class="sec-title"><p class="h-hand">케이지 온도</p>${tr ? `<span class="small muted">하늘색 띠 = 적정 ${tr.min}~${tr.max}°C</span>` : ''}</div>${lineChart(temps, { band: tr ? [tr.min, tr.max] : null })}</div>
 
-    <div class="page retro">
+    <div class="page retro m-retro">
       <div class="sec-title"><span class="tape blue">이번 달 회고</span>${savedChip('savedRetro')}</div>
       ${p.mainRoom ? `<button type="button" class="chk ${retro.capture ? 'on' : ''}" id="capture" style="margin-top:10px;width:100%"><span class="box">${retro.capture ? img(icon('check', 2)) : ''}</span><span>분양보증 본방 캡처 완료<small>본방 이동 후 11개월 동안 매달</small></span></button>` : ''}
-      <label for="r-good">잘 챙긴 것</label><textarea class="memo" id="r-good" data-r="good" placeholder="물 교체를 한 번도 안 빠뜨렸다">${esc(retro.good)}</textarea>
-      <div class="print-only">${esc(retro.good)}</div>
-      <label for="r-bad">아쉬웠던 것 · 걱정</label><textarea class="memo" id="r-bad" data-r="bad" placeholder="습도가 자주 50%를 넘었다">${esc(retro.bad)}</textarea>
-      <div class="print-only">${esc(retro.bad)}</div>
-      <label for="r-next">다음 달 목표</label><textarea class="memo" id="r-next" data-r="next" placeholder="핸들링 하루 5회">${esc(retro.next)}</textarea>
-      <div class="print-only">${esc(retro.next)}</div>
+      <div class="m-col"><label for="r-good">잘 챙긴 것</label><textarea class="memo" id="r-good" data-r="good" placeholder="물 교체를 한 번도 안 빠뜨렸다">${esc(retro.good)}</textarea>
+      <div class="print-only">${esc(retro.good)}</div></div>
+      <div class="m-col"><label for="r-bad">아쉬웠던 것 · 걱정</label><textarea class="memo" id="r-bad" data-r="bad" placeholder="습도가 자주 50%를 넘었다">${esc(retro.bad)}</textarea>
+      <div class="print-only">${esc(retro.bad)}</div></div>
+      <div class="m-col"><label for="r-next">다음 달 목표</label><textarea class="memo" id="r-next" data-r="next" placeholder="핸들링 하루 5회">${esc(retro.next)}</textarea>
+      <div class="print-only">${esc(retro.next)}</div></div>
     </div>
 
-    ${list.some((e) => e.memo) ? `<div class="page"><p class="h-hand" style="margin-bottom:4px">이번 달 메모</p>${list.filter((e) => e.memo).map((e) => `<div class="todo"><div class="ico">${img(geumi(MOOD_OF[e.condition] || 'idle', 1), '', 'width:26px;height:21px')}</div><div class="grow"><b>${fmtDate(e.date)}</b><span style="font-family:var(--hand);font-size:17px;color:var(--ink)">${esc(e.memo)}</span></div></div>`).join('')}</div>` : ''}
+    ${list.some((e) => e.memo) ? `<div class="page m-memo"><p class="h-hand" style="margin-bottom:4px">이번 달 메모</p>${list.filter((e) => e.memo).map((e) => `<div class="todo"><div class="ico">${img(geumi(MOOD_OF[e.condition] || 'idle', 1), '', 'width:26px;height:21px')}</div><div class="grow"><b>${fmtDate(e.date)}</b><span style="font-family:var(--hand);font-size:17px;color:var(--ink)">${esc(e.memo)}</span></div></div>`).join('')}</div>` : ''}
+    </div>
   `;
 
   $('#prevM').onclick = () => { routeState.month = addMonths(mk, -1); viewMonth(root); };
@@ -1201,6 +1204,7 @@ function viewMonth(root) {
   let rt;
   $$('[data-r]', root).forEach((ta) => ta.oninput = () => {
     retro[ta.dataset.r] = ta.value;
+    if (ta.nextElementSibling?.classList.contains('print-only')) ta.nextElementSibling.textContent = ta.value;
     retro.memo = ['잘 챙긴 것: ' + (retro.good || ''), '아쉬운 것: ' + (retro.bad || ''), '다음 달 목표: ' + (retro.next || '')].join('\n');
     clearTimeout(rt); rt = setTimeout(async () => { await putEntry(retro); flashSaved('savedRetro'); }, 500);
   });

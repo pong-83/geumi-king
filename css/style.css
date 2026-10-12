@@ -333,17 +333,48 @@ mark { background: linear-gradient(transparent 45%, #f5e98e 45%); color: inherit
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
 
-/* ── 인쇄 (월간 시트) ─────────────── */
+/* ── 인쇄 (월간 시트): A4 한 장에 다 들어가게 ─────────────── */
 @media print {
-  @page { size: A4; margin: 12mm; }
-  html, body { height: auto; overflow: visible; background: #fff; font-size: 11px; }
-  .app { max-width: none; height: auto; display: block; position: static; }
-  .stage, .view { position: static; overflow: visible; height: auto; }
-  .top, .tabs, .no-print, .toast, .fx, .sheet, .sheet-backdrop { display: none !important; }
-  .page { background: #fff; box-shadow: none; break-inside: avoid; }
+  @page { size: A4; margin: 10mm; }
+  html, body { height: auto; overflow: visible; background: #fff; font-size: 10px; line-height: 1.35; }
+  .app { max-width: none; height: auto; display: block; position: static; padding: 0; }
+  .stage, .view { position: static; overflow: visible; height: auto; padding: 0; }
+  .top, .tabs, .no-print, .toast, .fx, .sheet, .sheet-backdrop, .lightbox, .saved { display: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; animation: none !important; transition: none !important; }
   .print-only { display: block !important; }
-  .retro textarea { display: none; }
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { background: #fff; box-shadow: none; border: 1px solid #c9d6e6; border-radius: 4px; padding: 6px 8px; margin: 0 !important; break-inside: avoid; }
+  .mprint { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; max-height: 276mm; overflow: hidden; }
+  .m-head { grid-column: 1 / -1; display: flex !important; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--line); padding-bottom: 3px; font-size: 13px; }
+  .m-head span { font-size: 11px; color: var(--ink-2); }
+  .tape { font-size: 14px; padding: 1px 8px 0; transform: none; }
+  .h-hand { font-size: 13px; }
+  .sec-title { margin-bottom: 2px; }
+  .mhead { justify-content: flex-start; }
+  .m-cal .cal { gap: 2px; margin-top: 4px; }
+  .m-cal .cell { aspect-ratio: auto; min-height: 38px; font-size: 8px; padding: 1px; }
+  .m-cal .cell .mini img { width: 10px; height: 10px; }
+  .m-cal .legend { font-size: 8px; gap: 6px; margin-top: 3px; }
+  .m-cal .legend img { width: 10px; height: 10px; }
+  .m-ledger .rowline { min-height: 0; padding: 2.5px 0; }
+  .m-ledger .rowline .lb, .m-ledger .rowline .v { font-size: 10px; }
+  .m-cal { grid-column: span 4; }
+  .m-ledger { grid-column: span 2; }
+  .m-chart { grid-column: span 2; }
+  .m-chart .chart { max-height: 36mm; }
+  .m-chart .legend { font-size: 8px; margin-top: 2px; }
+  .m-chart .small { font-size: 8px; }
+  .m-retro { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 8px; }
+  .m-retro .sec-title, .m-retro #capture { grid-column: 1 / -1; }
+  .m-retro #capture { min-height: 0; padding: 2px 6px; box-shadow: none; font-size: 10px; margin: 0 !important; }
+  .m-retro label { margin: 0 0 2px; font-size: 10px; font-weight: 700; color: var(--ink); }
+  .m-retro textarea { display: none; }
+  .m-retro .print-only { white-space: pre-wrap; font-family: var(--hand); font-size: 12px; line-height: 1.35; min-height: 30mm; max-height: 40mm; overflow: hidden; background: repeating-linear-gradient(transparent 0 15px, var(--rule) 15px 16px); }
+  .m-memo { grid-column: 1 / -1; max-height: 52mm; overflow: hidden; columns: 2; column-gap: 10px; }
+  .m-memo .h-hand { column-span: all; }
+  .m-memo .todo { padding: 2px 0; break-inside: avoid; }
+  .m-memo .todo .ico { display: none; }
+  .m-memo .todo b { font-size: 9px; }
+  .m-memo .todo span { font-size: 11px !important; }
 }
 
 /* 아이폰 사파리 날짜 칸이 폭을 넘지 않게 */

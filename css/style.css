@@ -345,3 +345,10 @@ mark { background: linear-gradient(transparent 45%, #f5e98e 45%); color: inherit
   .retro textarea { display: none; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* 아이폰 사파리 날짜 칸이 폭을 넘지 않게 */
+input[type="date"] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; width: 100%; text-align: left; }
+input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+input[type="date"]::-webkit-calendar-picker-indicator { margin: 0; }
+.datebar input[type="date"] { flex: 1; width: auto; display: flex; align-items: center; }
+.form input, .form select { max-width: 100%; min-width: 0; }

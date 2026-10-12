@@ -1,6 +1,6 @@
 {
-  "name": "금이 킹 노트",
-  "short_name": "금이킹",
+  "name": "금이로그",
+  "short_name": "금이로그",
   "description": "피그미다람쥐 케어 기록",
   "lang": "ko",
   "start_url": "./#/today",

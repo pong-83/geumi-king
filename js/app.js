@@ -886,7 +886,7 @@ function viewMonth(root) {
   const [y, m] = mk.split('-').map(Number);
 
   root.innerHTML = `
-    <div class="print-only" style="margin-bottom:8px"><div class="row between"><b>금이 킹 노트 · 월간 회고</b><span>${esc(p.name)}</span></div></div>
+    <div class="print-only" style="margin-bottom:8px"><div class="row between"><b>금이로그 · 월간 회고</b><span>${esc(p.name)}</span></div></div>
     <div class="monthbar no-print-nav">
       <button class="icon-btn no-print" id="prevM" aria-label="이전 달">‹</button>
       <h1 class="title">${y}년 ${m}월 <span class="thin">${esc(p.name)}</span></h1>
@@ -1059,7 +1059,7 @@ function openSettings() {
       </div>
       ${CARE ? '<div class="row" style="margin-top:8px"><button class="btn sm ghost" id="relock">케어시트 다시 받기</button></div>' : ''}
     </div>
-    <p class="muted small" style="text-align:center;margin-top:18px">${pygmySVG({ size: 40, mood: 'idle' })}<br>금이 킹 노트 · 기록은 이 기기에 먼저 저장되고 노션으로 옮겨져요.</p>
+    <p class="muted small" style="text-align:center;margin-top:18px">${pygmySVG({ size: 40, mood: 'idle' })}<br>금이로그 · 기록은 이 기기에 먼저 저장되고 노션으로 옮겨져요.</p>
   `, (sh) => {
     $$('[data-edit]', sh).forEach((b) => b.onclick = () => openPetForm(S.pets.find((p) => p.id === b.dataset.edit)));
     $('#addPet', sh).onclick = () => openPetForm();
@@ -1132,7 +1132,7 @@ function openPetSwitch() {
 
 function renderTop() {
   const p = pet();
-  $('#petName').textContent = p?.name || '금이 킹 노트';
+  $('#petName').textContent = p?.name || '금이로그';
   renderSync();
 }
 

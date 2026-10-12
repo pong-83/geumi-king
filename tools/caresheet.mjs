@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { webcrypto as crypto } from 'node:crypto';
 
-const ITER = 150000;
+const ITER = 1000000;
 const b64 = (buf) => Buffer.from(buf).toString('base64');
 const unb64 = (s) => new Uint8Array(Buffer.from(s, 'base64'));
 

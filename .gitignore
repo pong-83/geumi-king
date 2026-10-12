@@ -1,0 +1,5 @@
+# 케어시트 원문은 저장소에 올리지 않아요 (암호문 data/caresheet.enc.json만 올라가요)
+caresheet.json
+node_modules/
+.wrangler/
+.DS_Store

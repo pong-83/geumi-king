@@ -1,0 +1,12 @@
+name = "pygmy-care-notion"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+# GitHub Pages 주소로 바꿔 주세요. 쉼표로 여러 개 가능해요.
+ALLOWED_ORIGIN = "https://pong-83.github.io"
+
+# 아래 세 값은 시크릿으로 넣어요 (코드에 쓰지 않아요)
+#   npx wrangler secret put NOTION_TOKEN
+#   npx wrangler secret put NOTION_DB_ID
+#   npx wrangler secret put APP_KEY

@@ -1,0 +1,16 @@
+{
+  "name": "금이 킹 노트",
+  "short_name": "금이킹",
+  "description": "피그미다람쥐 케어 기록",
+  "lang": "ko",
+  "start_url": "./#/today",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f1ed",
+  "theme_color": "#f2f1ed",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

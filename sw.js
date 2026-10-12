@@ -1,6 +1,6 @@
 // 오프라인용 서비스 워커: 앱 파일은 캐시하고, 워커(노션) 요청은 건드리지 않아요.
-const CACHE = 'geumi-log-v2';
-const SHELL = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/db.js', 'js/sprite.js', 'data/caresheet.enc.json',
+const CACHE = 'geumi-log-v3';
+const SHELL = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/db.js', 'js/pixel.js', 'data/caresheet.enc.json',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
@@ -13,7 +13,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
   const sameOrigin = url.origin === location.origin;
-  const font = url.hostname === 'cdn.jsdelivr.net';
+  const font = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!sameOrigin && !font) return;
   // 앱 파일: 네트워크 우선, 안 되면 캐시 / 폰트: 캐시 우선
   e.respondWith((async () => {

@@ -1078,41 +1078,21 @@ function viewAlbum(root) {
   });
 }
 
-/* ───────────────────────── 월간 회고 ───────────────────────── */
-function lineChart(points, { h = 120, color = '#5f86d6', band } = {}) {
-  if (points.length < 1) return '<p class="small muted" style="margin:6px 0 0">이번 달 기록이 없어요</p>';
-  const W = 320, P = 22;
-  const ys = points.map((p) => p.y);
-  let min = Math.min(...ys, band?.[0] ?? Infinity), max = Math.max(...ys, band?.[1] ?? -Infinity);
-  if (min === max) { min -= 1; max += 1; }
-  const days = points[0].days;
-  const X = (d) => P + ((d - 1) / Math.max(1, days - 1)) * (W - P * 1.5);
-  const Y = (v) => h - 18 - ((v - min) / (max - min)) * (h - 34);
-  const path = points.map((p, i) => `${i ? 'L' : 'M'}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join(' ');
-  return `<svg class="chart" viewBox="0 0 ${W} ${h}" role="img">
-    ${band ? `<rect x="${P}" width="${W - P * 1.5}" y="${Y(band[1])}" height="${Y(band[0]) - Y(band[1])}" fill="#e2eefa"/>` : ''}
-    <line x1="${P}" x2="${W - P / 2}" y1="${h - 18}" y2="${h - 18}" stroke="#bfd6ec"/>
-    <text x="0" y="${Y(max) + 3}">${+max.toFixed(1)}</text><text x="0" y="${Y(min) + 3}">${+min.toFixed(1)}</text>
-    ${[1, 8, 15, 22, 29].filter((d) => d <= days).map((d) => `<text x="${X(d) - 3}" y="${h - 4}">${d}</text>`).join('')}
-    <path d="${path}" fill="none" stroke="${color}" stroke-width="2"/>
-    ${points.map((p) => `<rect x="${X(p.x) - 3}" y="${Y(p.y) - 3}" width="6" height="6" fill="${color}" stroke="${O}" stroke-width="1"/>`).join('')}
-  </svg>`;
+/* ───────────────────────── 월간 기록 ───────────────────────── */
+const n1 = (v) => +(+v).toFixed(1);
+function dayFood(e) {
+  return [
+    e.milpro && `밀프로 ${n1(e.milpro)}개`, e.fruchu && `후르츄 ${n1(e.fruchu)}개`,
+    e.worm && `${esc(e.wormType || '왁스웜')} ${n1(e.worm)}마리`, e.iks && `익스 ${n1(e.iks)}개`,
+    e.fruit && `과일 큐브 ${n1(e.fruit)}개${e.fruitKinds?.length ? ` (${e.fruitKinds.map(esc).join(', ')})` : ''}`,
+    e.honey && '꿀 · 젤리',
+  ].filter(Boolean);
 }
-function barChart(rows, days, h = 110) {
-  const W = 320, P = 22, bw = (W - P * 1.5) / days;
-  const max = Math.max(1, ...rows.map((r) => r.a + r.b));
-  const Y = (v) => ((h - 30) * v) / max;
-  return `<svg class="chart" viewBox="0 0 ${W} ${h}" role="img">
-    <line x1="${P}" x2="${W - P / 2}" y1="${h - 18}" y2="${h - 18}" stroke="#bfd6ec"/>
-    <text x="0" y="12">${max}</text>
-    ${rows.map((r) => {
-      const x = P + (r.x - 1) * bw + 1;
-      return `<rect x="${x}" width="${bw - 2}" y="${h - 18 - Y(r.a)}" height="${Y(r.a)}" fill="#c99a5b"/>
-              <rect x="${x}" width="${bw - 2}" y="${h - 18 - Y(r.a) - Y(r.b)}" height="${Y(r.b)}" fill="#f3aeb5"/>
-              ${r.w ? `<rect x="${x + bw / 2 - 2}" width="4" y="${h - 18 - Y(r.a) - Y(r.b) - 7}" height="4" fill="${O}"/>` : ''}`;
-    }).join('')}
-    ${[1, 8, 15, 22, 29].filter((d) => d <= days).map((d) => `<text x="${P + (d - 1) * bw}" y="${h - 4}">${d}</text>`).join('')}
-  </svg>`;
+function dayDone(e) {
+  return [
+    e.water && '물 교체', e.iksNew && '익스 교체', e.feedReset && '사료 전체 교체',
+    ...(e.supp || []).map(esc), ...(e.clean || []).map(esc), e.handling && `핸들링 ${n1(e.handling)}회`,
+  ].filter(Boolean);
 }
 
 function viewMonth(root) {
@@ -1122,32 +1102,35 @@ function viewMonth(root) {
   const list = petEntries(p).filter((e) => monthKey(e.date) === mk).sort((a, b) => (a.date > b.date ? 1 : -1));
   const byDate = Object.fromEntries(list.map((e) => [e.date, e]));
   const media = [...M.values()].filter((m) => m.petId === p.id && monthKey(m.date) === mk);
+  const photosOn = (d) => media.filter((m) => m.date === d).length;
   const mediaDays = new Set(media.map((m) => m.date));
   const first = (parse(`${mk}-01`).getDay() + 6) % 7;
-  const retro = E.get(retroId(mk, p.id)) || { id: retroId(mk, p.id), kind: '회고', date: `${mk}-01`, pet: p.name, petId: p.id, memo: '', good: '', bad: '', next: '', capture: false };
-  const sum = (k) => list.reduce((a, e) => a + (num(e[k]) || 0), 0);
-  const cnt = (f) => list.filter(f).length;
-  const weights = list.filter((e) => e.weight).map((e) => ({ x: parse(e.date).getDate(), y: e.weight, days }));
-  const temps = list.filter((e) => e.temp).map((e) => ({ x: parse(e.date).getDate(), y: e.temp, days }));
-  const tr = tempFor(weeksOld(p, `${mk}-15`));
-  const recorded = new Set([...list.filter((e) => !isEmpty(e)).map((e) => e.date), ...mediaDays]).size;
-  const avg = (k) => { const v = list.map((e) => num(e[k])).filter((x) => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '-'; };
-  const wDelta = weights.length >= 2 ? +(weights.at(-1).y - weights[0].y).toFixed(1) : null;
   const t = today();
   const [y, m] = mk.split('-').map(Number);
   const w0 = weeksOld(p, `${mk}-${pad(days)}`);
   const MINI = { food: sticker('milpro', 1), water: sticker('water', 1), clean: sticker('clean', 1), photo: icon('camera', 2), worry: icon('ban', 2) };
-  const ledger = [
-    ['기록한 날', `${recorded} / ${days}일`], ['몸무게 변화', wDelta == null ? '-' : `${wDelta > 0 ? '+' : ''}${wDelta} g`],
-    ['물 교체', `${cnt((e) => e.water)}회`], ['청소한 날', `${cnt((e) => e.clean?.length)}일`],
-    ['웜 급여', `${cnt((e) => e.worm > 0)}회 · ${sum('worm')}마리`], ['과일 큐브', `${cnt((e) => e.fruit > 0)}회`],
-    ['칼슘 · 비타민', `${cnt((e) => e.supp?.includes('칼슘'))}회 · ${cnt((e) => e.supp?.includes('비타민'))}회`], ['핸들링', `${sum('handling')}회`],
-    ['평균 온도', `${avg('temp')} °C`], ['평균 습도', `${avg('humid')} %`], ['주의한 날', `${cnt((e) => e.condition === '주의')}일`],
-  ];
+  const recDays = [...new Set([...list.filter((e) => !isEmpty(e)).map((e) => e.date), ...mediaDays])].sort().reverse();
+  const retro = E.get(retroId(mk, p.id));
+  const retroRows = retro ? [['잘 챙긴 것', retro.good], ['아쉬웠던 것', retro.bad], ['다음 달 목표', retro.next]].filter(([, v]) => v?.trim()) : [];
+
+  const dayCard = (d) => {
+    const e = byDate[d] || blankEntry(d, p);
+    const food = dayFood(e), done = dayDone(e), ph = photosOn(d);
+    const body = [
+      ['식사', food.join(' · ')], ['한 일', done.join(' · ')],
+      ['몸 · 환경', [e.weight && `${e.weight} g`, e.temp && `${e.temp}°C`, e.humid && `${e.humid}%`].filter(Boolean).join(' · ')],
+      ['사진', ph ? `${ph}장` : ''],
+    ].filter(([, v]) => v);
+    return `<article class="dayrec" id="day-${d}">
+      <div class="dr-head"><b>${fmtDate(d)}</b>${e.condition ? `<span class="ctag ${e.condition === '주의' ? 'danger' : ''}">${esc(e.condition)}</span>` : ''}${d === t ? '<span class="ctag yellow">오늘</span>' : ''}</div>
+      ${body.map(([l, v]) => `<div class="dr-row"><span class="lb">${l}</span><span class="v">${v}</span></div>`).join('')}
+      ${e.memo ? `<p class="dr-memo">${esc(e.memo)}</p>` : ''}
+    </article>`;
+  };
 
   root.innerHTML = `
     <div class="mprint">
-    <div class="print-only m-head"><b>금이로그 · 월간 회고</b><span>${esc(p.name)} · ${y}년 ${m}월${w0 != null ? ` · 생후 ${w0}주` : ''}</span></div>
+    <div class="print-only m-head"><b>금이로그 · 월간 기록</b><span>${esc(p.name)} · ${y}년 ${m}월${w0 != null ? ` · 생후 ${w0}주` : ''}</span></div>
     <div class="page m-cal">
       <div class="mhead">
         <button class="key no-print" id="prevM" aria-label="이전 달">${SVG_PREV}</button>
@@ -1161,7 +1144,7 @@ function viewMonth(root) {
           const d = `${mk}-${pad(i + 1)}`; const e = byDate[d];
           const marks = e ? [hasFood(e) && 'food', e.water && 'water', e.clean?.length && 'clean', e.condition === '주의' && 'worry'].filter(Boolean) : [];
           if (mediaDays.has(d)) marks.push('photo');
-          return `<button type="button" class="cell ${marks.length || (e && !isEmpty(e)) ? 'has' : ''} ${d === t ? 'today' : ''}" data-d="${d}" aria-label="${fmtDate(d)}">${i + 1}<span class="mini">${marks.map((k) => img(MINI[k])).join('')}</span></button>`;
+          return `<button type="button" class="cell ${recDays.includes(d) ? 'has' : ''} ${d === t ? 'today' : ''}" data-d="${d}" aria-label="${fmtDate(d)}">${i + 1}<span class="mini">${marks.map((k) => img(MINI[k])).join('')}</span></button>`;
         }).join('')}
       </div>
       <div class="legend">
@@ -1169,52 +1152,27 @@ function viewMonth(root) {
       </div>
     </div>
 
-    <div class="page ledger m-ledger">
-      <div class="sec-title"><p class="h-hand">이번 달 장부</p>
+    <div class="page m-days">
+      <div class="sec-title"><p class="h-hand">날짜별 기록</p>
         <span class="row no-print"><button type="button" class="btn sm white" id="printBtn">인쇄 · PDF</button><button type="button" class="btn sm white" id="csvBtn">CSV</button></span></div>
-      ${ledger.map(([l, v]) => `<div class="rowline"><span class="lb">${l}</span><span class="dots-fill"></span><span class="v">${v}</span></div>`).join('')}
+      ${recDays.length ? recDays.map(dayCard).join('') : '<p class="small muted" style="margin:10px 2px">이번 달은 아직 기록이 없어요.</p>'}
     </div>
 
-    <div class="page m-chart"><div class="sec-title"><p class="h-hand">몸무게</p><span class="ex">g</span></div>${lineChart(weights, { color: '#e8707c' })}</div>
-    <div class="page m-chart"><div class="sec-title"><p class="h-hand">넣어준 사료</p></div>
-      ${barChart([...Array(days)].map((_, i) => { const e = byDate[`${mk}-${pad(i + 1)}`]; return { x: i + 1, a: num(e?.milpro) || 0, b: num(e?.fruchu) || 0, w: (e?.worm || 0) > 0 }; }), days)}
-      <div class="legend"><span><i style="width:10px;height:10px;background:#c99a5b;display:inline-block"></i>밀프로</span><span><i style="width:10px;height:10px;background:#f3aeb5;display:inline-block"></i>후르츄</span><span><i style="width:6px;height:6px;background:${O};display:inline-block"></i>웜 준 날</span></div></div>
-    <div class="page m-chart"><div class="sec-title"><p class="h-hand">케이지 온도</p>${tr ? `<span class="small muted">하늘색 띠 = 적정 ${tr.min}~${tr.max}°C</span>` : ''}</div>${lineChart(temps, { band: tr ? [tr.min, tr.max] : null })}</div>
-
-    <div class="page retro m-retro">
-      <div class="sec-title"><span class="tape blue">이번 달 회고</span>${savedChip('savedRetro')}</div>
-      ${p.mainRoom ? `<button type="button" class="chk ${retro.capture ? 'on' : ''}" id="capture" style="margin-top:10px;width:100%"><span class="box">${retro.capture ? img(icon('check', 2)) : ''}</span><span>분양보증 본방 캡처 완료<small>본방 이동 후 11개월 동안 매달</small></span></button>` : ''}
-      <div class="m-col"><label for="r-good">잘 챙긴 것</label><textarea class="memo" id="r-good" data-r="good" placeholder="물 교체를 한 번도 안 빠뜨렸다">${esc(retro.good)}</textarea>
-      <div class="print-only">${esc(retro.good)}</div></div>
-      <div class="m-col"><label for="r-bad">아쉬웠던 것 · 걱정</label><textarea class="memo" id="r-bad" data-r="bad" placeholder="습도가 자주 50%를 넘었다">${esc(retro.bad)}</textarea>
-      <div class="print-only">${esc(retro.bad)}</div></div>
-      <div class="m-col"><label for="r-next">다음 달 목표</label><textarea class="memo" id="r-next" data-r="next" placeholder="핸들링 하루 5회">${esc(retro.next)}</textarea>
-      <div class="print-only">${esc(retro.next)}</div></div>
-    </div>
-
-    ${list.some((e) => e.memo) ? `<div class="page m-memo"><p class="h-hand" style="margin-bottom:4px">이번 달 메모</p>${list.filter((e) => e.memo).map((e) => `<div class="todo"><div class="ico">${img(geumi(MOOD_OF[e.condition] || 'idle', 1), '', 'width:26px;height:21px')}</div><div class="grow"><b>${fmtDate(e.date)}</b><span style="font-family:var(--hand);font-size:17px;color:var(--ink)">${esc(e.memo)}</span></div></div>`).join('')}</div>` : ''}
+    ${retroRows.length ? `<div class="page m-retro-view"><p class="h-hand" style="margin-bottom:4px">이번 달 회고</p>
+      ${retroRows.map(([l, v]) => `<div class="dr-row"><span class="lb">${l}</span><span class="v">${esc(v)}</span></div>`).join('')}</div>` : ''}
     </div>
   `;
 
   $('#prevM').onclick = () => { routeState.month = addMonths(mk, -1); viewMonth(root); };
   $('#nextM').onclick = () => { routeState.month = addMonths(mk, 1); viewMonth(root); };
-  $$('.cal .cell[data-d]', root).forEach((b) => b.onclick = () => { location.hash = `#/log/${b.dataset.d}`; });
+  $$('.cal .cell[data-d]', root).forEach((b) => b.onclick = () => {
+    const card = document.getElementById(`day-${b.dataset.d}`);
+    if (!card) { toast(`${fmtDate(b.dataset.d)}은 기록이 없어요`); return; }
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    replay(card, 'pop');
+  });
   $('#printBtn').onclick = () => window.print();
   $('#csvBtn').onclick = () => downloadCSV(list, `geumi-log-${p.name}-${mk}.csv`);
-  let rt;
-  $$('[data-r]', root).forEach((ta) => ta.oninput = () => {
-    retro[ta.dataset.r] = ta.value;
-    if (ta.nextElementSibling?.classList.contains('print-only')) ta.nextElementSibling.textContent = ta.value;
-    retro.memo = ['잘 챙긴 것: ' + (retro.good || ''), '아쉬운 것: ' + (retro.bad || ''), '다음 달 목표: ' + (retro.next || '')].join('\n');
-    clearTimeout(rt); rt = setTimeout(async () => { await putEntry(retro); flashSaved('savedRetro'); }, 500);
-  });
-  $('#capture')?.addEventListener('click', async (ev) => {
-    const b = ev.currentTarget;
-    retro.capture = !retro.capture; await putEntry(retro); flashSaved('savedRetro');
-    b.classList.toggle('on', retro.capture);
-    $('.box', b).innerHTML = retro.capture ? img(icon('check', 2)) : '';
-    if (retro.capture) { const [x, yy] = center(b); burst(x, yy, [icon('heart', 3), icon('check', 2)], 8); }
-  });
 }
 
 /* ───────────────────────── 케어시트 ───────────────────────── */

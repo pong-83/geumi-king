@@ -1115,6 +1115,35 @@ function barChart(rows, days, h = 110) {
   </svg>`;
 }
 
+const n1 = (v) => +(+v).toFixed(1);
+function dayFood(e) {
+  return [
+    e.milpro && `밀프로 ${n1(e.milpro)}개`, e.fruchu && `후르츄 ${n1(e.fruchu)}개`,
+    e.worm && `${esc(e.wormType || '왁스웜')} ${n1(e.worm)}마리`, e.iks && `익스 ${n1(e.iks)}개`,
+    e.fruit && `과일 큐브 ${n1(e.fruit)}개${e.fruitKinds?.length ? ` (${e.fruitKinds.map(esc).join(', ')})` : ''}`,
+    e.honey && '꿀 · 젤리',
+  ].filter(Boolean);
+}
+function dayDone(e) {
+  return [
+    e.water && '물 교체', e.iksNew && '익스 교체', e.feedReset && '사료 전체 교체',
+    ...(e.supp || []).map(esc), ...(e.clean || []).map(esc), e.handling && `핸들링 ${n1(e.handling)}회`,
+  ].filter(Boolean);
+}
+// 인쇄용: 기록한 날마다 식사 · 한 일 · 몸 상태 · 메모
+function dayCard(e, photos) {
+  const body = [
+    ['식사', dayFood(e).join(' · ')], ['한 일', dayDone(e).join(' · ')],
+    ['몸 · 환경', [e.weight && `${e.weight} g`, e.temp && `${e.temp}°C`, e.humid && `${e.humid}%`].filter(Boolean).join(' · ')],
+    ['사진', photos ? `${photos}장` : ''],
+  ].filter(([, v]) => v);
+  return `<article class="dayrec">
+    <div class="dr-head"><b>${fmtDate(e.date)}</b>${e.condition ? `<span class="ctag ${e.condition === '주의' ? 'danger' : ''}">${esc(e.condition)}</span>` : ''}</div>
+    ${body.map(([l, v]) => `<div class="dr-row"><span class="lb">${l}</span><span class="v">${v}</span></div>`).join('')}
+    ${e.memo ? `<p class="dr-memo">${esc(e.memo)}</p>` : ''}
+  </article>`;
+}
+
 function viewMonth(root) {
   const p = pet();
   const mk = routeState.month;
@@ -1130,6 +1159,7 @@ function viewMonth(root) {
   const weights = list.filter((e) => e.weight).map((e) => ({ x: parse(e.date).getDate(), y: e.weight, days }));
   const temps = list.filter((e) => e.temp).map((e) => ({ x: parse(e.date).getDate(), y: e.temp, days }));
   const tr = tempFor(weeksOld(p, `${mk}-15`));
+  const recDays = [...new Set([...list.filter((e) => !isEmpty(e)).map((e) => e.date), ...mediaDays])].sort();
   const recorded = new Set([...list.filter((e) => !isEmpty(e)).map((e) => e.date), ...mediaDays]).size;
   const avg = (k) => { const v = list.map((e) => num(e[k])).filter((x) => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '-'; };
   const wDelta = weights.length >= 2 ? +(weights.at(-1).y - weights[0].y).toFixed(1) : null;
@@ -1147,7 +1177,7 @@ function viewMonth(root) {
 
   root.innerHTML = `
     <div class="mprint">
-    <div class="print-only m-head"><b>금이로그 · 월간 회고</b><span>${esc(p.name)} · ${y}년 ${m}월${w0 != null ? ` · 생후 ${w0}주` : ''}</span></div>
+    <div class="print-only m-head"><b>금이로그 · 월간 기록</b><span>${esc(p.name)} · ${y}년 ${m}월${w0 != null ? ` · 생후 ${w0}주` : ''}</span></div>
     <div class="page m-cal">
       <div class="mhead">
         <button class="key no-print" id="prevM" aria-label="이전 달">${SVG_PREV}</button>
@@ -1193,6 +1223,10 @@ function viewMonth(root) {
     </div>
 
     ${list.some((e) => e.memo) ? `<div class="page m-memo"><p class="h-hand" style="margin-bottom:4px">이번 달 메모</p>${list.filter((e) => e.memo).map((e) => `<div class="todo"><div class="ico">${img(geumi(MOOD_OF[e.condition] || 'idle', 1), '', 'width:26px;height:21px')}</div><div class="grow"><b>${fmtDate(e.date)}</b><span style="font-family:var(--hand);font-size:17px;color:var(--ink)">${esc(e.memo)}</span></div></div>`).join('')}</div>` : ''}
+
+    <div class="print-only m-days">
+      ${recDays.length ? recDays.map((d) => dayCard(byDate[d] || blankEntry(d, p), media.filter((x) => x.date === d).length)).join('') : '<p>이번 달은 아직 기록이 없어요.</p>'}
+    </div>
     </div>
   `;
 

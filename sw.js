@@ -1,5 +1,5 @@
 // 오프라인용 서비스 워커: 앱 파일은 캐시하고, 워커(노션) 요청은 건드리지 않아요.
-const CACHE = 'geumi-log-v7';
+const CACHE = 'geumi-log-v8';
 const SHELL = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/db.js', 'js/pixel.js', 'data/caresheet.enc.json',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 
